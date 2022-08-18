@@ -1,0 +1,19 @@
+---
+# defaults file for ansible-role-opendkim
+
+opendkim_autorestart: true
+opendkim_autorestart_rate: 10/1h
+opendkim_umask: "007"
+opendkim_syslog: true
+opendkim_syslog_success: true
+opendkim_log_why: true
+opendkim_canonicalization: relaxed/simple
+
+
+opendkim_mode: sv
+opendkim_user: opendkim
+opendkim_group: opendkim
+opendkim_trust_anchor_file: /usr/share/dns/root.key
+opendkim_socket: "inet:8891@localhost"
+opendkim_domains: []
+opendkim_signature_algorithm: rsa-sha256
