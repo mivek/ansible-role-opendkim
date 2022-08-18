@@ -1,0 +1,4 @@
+---
+opendkim_domains:
+  - subdomain: '*'
+    domain: example.com

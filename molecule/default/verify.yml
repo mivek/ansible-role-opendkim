@@ -1,0 +1,122 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+  - name: Gather facts regarding package
+    ansible.builtin.package_facts:
+
+  - name: Populate service facts
+    ansible.builtin.service_facts:
+
+  - name: Verify package installation
+    ansible.builtin.assert:
+      that:
+        - "'opendkim' in ansible_facts.packages"
+        - "'opendkim-tools' in ansible_facts.packages"
+
+  - name: Stat on configuration
+    ansible.builtin.stat:
+      path: /etc/opendkim.conf
+    register: configuration
+
+  - name: Checks on configuration
+    ansible.builtin.assert:
+      that:
+        - configuration.stat.exists
+        - configuration.stat.isreg
+        - configuration.stat.pw_name == 'opendkim'
+        - configuration.stat.gr_name == 'opendkim'
+        - configuration.stat.mode == '0644'
+
+  - name: Stat on opendkim default file
+    ansible.builtin.stat:
+      path: /etc/default/opendkim
+    register: default_file
+
+  - name: Checks on opendkim default file
+    ansible.builtin.assert:
+      that:
+        - default_file.stat.exists
+        - default_file.stat.isreg
+        - default_file.stat.pw_name == 'opendkim'
+        - default_file.stat.gr_name == 'opendkim'
+        - default_file.stat.mode == '0644'
+
+  - name: Stat on KeyTable file
+    ansible.builtin.stat:
+      path: /etc/opendkim/KeyTable
+    register: keytable
+
+  - name: Checks on keytable file
+    ansible.builtin.assert:
+      that:
+        - keytable.stat.exists
+        - keytable.stat.isreg
+        - keytable.stat.pw_name == 'opendkim'
+        - keytable.stat.gr_name == 'opendkim'
+        - keytable.stat.mode == '0644'
+
+  - name: Stat on SigningTable file
+    ansible.builtin.stat:
+      path: /etc/opendkim/SigningTable
+    register: signingtable
+
+  - name: Checks on signingtable file
+    ansible.builtin.assert:
+      that:
+        - signingtable.stat.exists
+        - signingtable.stat.isreg
+        - signingtable.stat.pw_name == 'opendkim'
+        - signingtable.stat.gr_name == 'opendkim'
+        - signingtable.stat.mode == '0644'
+
+  - name: Stat on TrustedHosts file
+    ansible.builtin.stat:
+      path: /etc/opendkim/TrustedHosts
+    register: trustedhosts
+
+  - name: Checks on trustedhosts file
+    ansible.builtin.assert:
+      that:
+        - trustedhosts.stat.exists
+        - trustedhosts.stat.isreg
+        - trustedhosts.stat.pw_name == 'opendkim'
+        - trustedhosts.stat.gr_name == 'opendkim'
+        - trustedhosts.stat.mode == '0644'
+
+  - name: Stat on private key
+    ansible.builtin.stat:
+      path: /etc/opendkim/keys/example.com/mail.private
+    register: priv_key
+
+  - name: Checks on private key
+    ansible.builtin.assert:
+      that:
+        - priv_key.stat.exists
+        - priv_key.stat.isreg
+        - priv_key.stat.pw_name == 'opendkim'
+        - priv_key.stat.gr_name == 'opendkim'
+        - priv_key.stat.mode == '0600'
+
+  - name: Stat on public key
+    ansible.builtin.stat:
+      path: /etc/opendkim/keys/example.com/mail.txt
+    register: pub_key
+
+  - name: Checks on public key
+    ansible.builtin.assert:
+      that:
+        - pub_key.stat.exists
+        - pub_key.stat.isreg
+        - pub_key.stat.pw_name == 'opendkim'
+        - pub_key.stat.gr_name == 'opendkim'
+        - pub_key.stat.mode == '0600'
+
+  - name: Check that the service is running and enabled
+    ansible.builtin.assert:
+      that:
+        - ansible_facts.services['opendkim.service'].state == 'running'
+        - ansible_facts.services['opendkim.service'].status == 'enabled'

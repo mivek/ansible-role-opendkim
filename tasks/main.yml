@@ -1,0 +1,83 @@
+---
+# tasks file for ansible-role-opendkim
+
+- name: Install opendkim package
+  ansible.builtin.apt:
+    name: "{{ __opendkim_packages }}"
+    update_cache: true
+
+- name: Create the key directories
+  ansible.builtin.file:
+    path: "/etc/opendkim/keys/{{ item.domain }}"
+    state: directory
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0755
+  loop: "{{ opendkim_domains }}"
+
+- name: Create the TrustedHost file
+  ansible.builtin.template:
+    src: TrustedHosts.j2
+    dest: /etc/opendkim/TrustedHosts
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0644
+
+- name: Create the KeyTable file
+  ansible.builtin.template:
+    src: KeyTable.j2
+    dest: /etc/opendkim/KeyTable
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0644
+
+- name: Create the SigningTable file
+  ansible.builtin.template:
+    src: SigningTable.j2
+    dest: /etc/opendkim/SigningTable
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0644
+
+- name: Create the configuration file
+  ansible.builtin.template:
+    src: opendkim.conf.j2
+    dest: "{{ __opendkim_configuration_file }}"
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0644
+  notify: restart_opendkim
+
+- name: Create the socket configuration file
+  ansible.builtin.template:
+    src: opendkim.j2
+    dest: /etc/default/opendkim
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0644
+  notify: restart_opendkim
+
+- name: Create service folder
+  ansible.builtin.file:
+    path: "{{ __opendkim_service_path }}"
+    state: directory
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    mode: 0755
+
+- name: Copy the service file
+  ansible.builtin.template:
+    src: opendkim.service.j2
+    dest: "{{ __opendkim_service_path }}/override.conf"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Create the public and private keys
+  ansible.builtin.command:
+    cmd: "opendkim-genkey -s mail -d {{ item.domain }}"
+    chdir: "/etc/opendkim/keys/{{ item.domain }}"
+  loop: "{{ opendkim_domains }}"
+  become: true
+  become_user: "{{ opendkim_user }}"
+  changed_when: false
