@@ -78,6 +78,11 @@
     cmd: "opendkim-genkey -s mail -d {{ item.domain }}"
     chdir: "/etc/opendkim/keys/{{ item.domain }}"
   loop: "{{ opendkim_domains }}"
-  become: true
-  become_user: "{{ opendkim_user }}"
   changed_when: false
+
+- name: Change the permission on the keys
+  ansible.builtin.file:
+    path: /etc/opendkim/keys/
+    owner: "{{ opendkim_user }}"
+    group: "{{ opendkim_group }}"
+    recurse: true
